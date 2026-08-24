@@ -54,12 +54,33 @@
 
   /* ── PANTALLA DE ACCESO ── */
   #accessScreen {
-    position:fixed; inset:0; z-index:600;
-    display:flex; align-items:center; justify-content:center;
+    position: fixed; inset: 0; z-index: 600;
     background: var(--dark);
     transition: opacity 0.8s ease;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow: hidden;
+  }
+  /* Cada paso ocupa toda la pantalla, apilados */
+  #codeStep {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 0 24px;
+    text-align: center;
+    transition: opacity 0.4s ease;
+  }
+  #envelopeStep {
+    position: absolute; inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  #envelopeStep.visible {
+    display: flex;
+  }
+  #envelopeStep.shown {
+    opacity: 1;
   }
 
   .access-card {
@@ -307,19 +328,6 @@
   .count-label {
     font-size: 10px; letter-spacing: 3px; color: var(--text3);
     text-transform: uppercase; margin-top: 8px;
-  }
-
-  /* ── VIDEO ── */
-  .video-section { text-align: center; }
-  .video-wrapper {
-    position: relative; padding-bottom: 56.25%; height: 0;
-    border-radius: 16px; overflow: hidden;
-    border: 1px solid rgba(200,168,130,0.15); margin-top: 24px;
-  }
-  .video-wrapper video {
-    position: absolute; inset: 0;
-    width: 100%; height: 100%;
-    object-fit: contain; background: #000;
   }
 
   /* ── INFO DEL EVENTO ── */
@@ -686,150 +694,168 @@
   }
 
   /* ══ SOBRE ══ */
-  #envelope-screen {
-    position: fixed; inset: 0; z-index: 600;
-    display: flex; align-items: center; justify-content: center;
-    background: var(--dark);
-    transition: opacity 0.8s ease;
-  }
-  #envelope-screen.out {
-    opacity: 0; pointer-events: none;
+  /* ══ PANTALLA DEL SOBRE ══ */
+  #accessScreen {
+    overflow: hidden;
   }
 
+  /*
+   * El truco responsivo:
+   * El sobre tiene aspect-ratio 1.65:1 (ancho/alto).
+   * Para que nunca se salga de pantalla ni en portrait ni en landscape:
+   *   — En portrait (móvil vertical): limitamos el ANCHO  → el alto se calcula solo
+   *   — En landscape (móvil horizontal / tablet / laptop): limitamos el ALTO → el ancho se calcula solo
+   * Usamos CSS custom properties calculadas vía JS para el factor de escala del "open".
+   */
   .env-wrap {
     position: relative;
-    width: min(340px, 88vw);
     cursor: pointer;
-    filter: drop-shadow(0 24px 60px rgba(0,0,0,0.7));
-    perspective: 900px;
+    filter: drop-shadow(0 32px 80px rgba(0,0,0,0.85));
+    perspective: 1200px;
+    transition: transform 0.95s cubic-bezier(0.4, 0, 0.1, 1),
+                opacity 0.55s ease 0.2s;
+    transform-origin: center center;
+    /* Tamaño base portrait: ocupa ~82% del ancho, máximo 560px
+       El height queda libre — el aspect-ratio lo controla */
+    width: min(560px, 82vw);
+  }
+
+  /* Cuando se abre: escala dinámicamente usando var calculada por JS */
+  .env-wrap.opened {
+    transform: scale(var(--env-scale, 5));
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* ── Landscape: cualquier pantalla más ancha que alta ── */
+  @media (orientation: landscape) {
+    .env-wrap {
+      /* Limitamos por altura: el sobre ocupa ~70% del alto de pantalla.
+         Como aspect-ratio = 1.65, el ancho = alto × 1.65.
+         70vh × 1.65 ≈ 115.5vw — pero lo dejamos que lo maneje aspect-ratio,
+         simplemente fijamos la altura. */
+      width: auto;
+      height: min(70vh, 480px);
+      /* Truco: ponemos el ancho como mínimo para que el env-body (que tiene
+         aspect-ratio) no colapse; se resuelve con el contenedor */
+    }
+    /* En landscape el env-body necesita height explícito porque el padre no
+       tiene ancho fijo — usamos la misma restricción */
+    .env-body {
+      height: 100%;
+      width: auto;
+      aspect-ratio: 1.65 / 1;
+    }
+  }
+
+  /* ── Tablet portrait (768px+): sobre un poco más grande ── */
+  @media (min-width: 768px) and (orientation: portrait) {
+    .env-wrap { width: min(600px, 72vw); }
+  }
+
+  /* ── Desktop / laptop landscape (1024px+): tamaño cómodo centrado ── */
+  @media (min-width: 1024px) and (orientation: landscape) {
+    .env-wrap {
+      height: min(60vh, 420px);
+    }
+  }
+
+  /* ── Pantallas muy grandes (1440px+) ── */
+  @media (min-width: 1440px) and (orientation: landscape) {
+    .env-wrap {
+      height: min(55vh, 460px);
+    }
   }
 
   /* Cuerpo del sobre */
   .env-body {
-    width: 100%; aspect-ratio: 1.6 / 1;
-    background: linear-gradient(160deg, #1c1230 0%, #110b22 100%);
-    border: 1px solid rgba(200,168,130,0.25);
-    border-radius: 6px;
+    width: 100%;
+    aspect-ratio: 1.65 / 1;
+    background: linear-gradient(160deg, #1e1338 0%, #110b22 100%);
+    border: 1px solid rgba(200,168,130,0.3);
+    border-radius: 8px;
     position: relative;
     overflow: visible;
+    box-shadow:
+      inset 0 0 60px rgba(124,58,237,0.06),
+      0 0 0 1px rgba(200,168,130,0.08);
   }
 
-  /* Líneas decorativas en el cuerpo */
+  /* Líneas decorativas en X */
   .env-body::before {
     content: '';
     position: absolute; inset: 0;
     background:
-      linear-gradient(to bottom right, transparent 49.5%, rgba(200,168,130,0.08) 49.5%, rgba(200,168,130,0.08) 50.5%, transparent 50.5%),
-      linear-gradient(to bottom left,  transparent 49.5%, rgba(200,168,130,0.08) 49.5%, rgba(200,168,130,0.08) 50.5%, transparent 50.5%);
-    border-radius: 6px;
+      linear-gradient(to bottom right, transparent 49.5%, rgba(200,168,130,0.07) 49.5%, rgba(200,168,130,0.07) 50.5%, transparent 50.5%),
+      linear-gradient(to bottom left,  transparent 49.5%, rgba(200,168,130,0.07) 49.5%, rgba(200,168,130,0.07) 50.5%, transparent 50.5%);
+    border-radius: 8px;
   }
 
-  /* Sello de cera */
+  /* Brillo en el borde superior */
+  .env-body::after {
+    content: '';
+    position: absolute; top: 0; left: 10%; right: 10%; height: 1px;
+    background: linear-gradient(to right, transparent, rgba(200,168,130,0.5), transparent);
+    border-radius: 50%;
+  }
+
+  /* Sello de cera — tamaño relativo al sobre con clamp */
   .env-seal {
     position: absolute;
     left: 50%; top: 50%;
     transform: translate(-50%, -50%);
-    width: 64px; height: 64px;
+    width: clamp(52px, 13%, 80px);
+    height: clamp(52px, 13%, 80px);
     border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, #c8a882, #7a5c32);
-    border: 1px solid rgba(200,168,130,0.5);
+    background: radial-gradient(circle at 35% 35%, #d4b48e, #7a5c32);
+    border: 1px solid rgba(200,168,130,0.6);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
     display: flex; align-items: center; justify-content: center;
     font-family: 'Cinzel', serif;
-    font-size: 22px; color: rgba(14,8,24,0.8);
-    transition: transform 0.4s ease, opacity 0.4s ease;
+    font-size: clamp(18px, 4.5%, 28px);
+    color: rgba(14,8,24,0.75);
+    transition: transform 0.35s ease, opacity 0.35s ease;
     z-index: 2;
   }
 
-  /* Tapa del sobre (arriba) */
+  /* Tapa del sobre — apertura 3D */
   .env-flap {
     position: absolute; top: 0; left: 0; width: 100%;
     transform-origin: top center;
-    transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.75s cubic-bezier(0.4, 0, 0.15, 1);
     transform-style: preserve-3d;
     backface-visibility: hidden;
     z-index: 3;
   }
   .env-flap svg { display: block; width: 100%; }
 
-  /* Carta que sube */
-  .env-letter {
+  /* Hint "Toca para abrir" */
+  .env-hint {
     position: absolute;
-    left: 8%; width: 84%;
-    bottom: 8%;
-    background: linear-gradient(160deg, #241540, #1a0f2e);
-    border: 1px solid rgba(200,168,130,0.2);
-    border-radius: 4px;
-    padding: 20px 18px 16px;
+    bottom: -40px; left: 0; right: 0;
     text-align: center;
-    transform: translateY(30px) scale(0.96);
-    opacity: 0;
-    transition: transform 0.7s cubic-bezier(0.2, 0, 0.1, 1) 0.3s,
-                opacity 0.5s ease 0.3s;
-    z-index: 1;
-    pointer-events: none;
-  }
-  .env-wrap.opened .env-letter {
-    pointer-events: none;
-  }
-  .env-letter-name {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(18px, 5vw, 26px);
-    font-weight: 300; font-style: italic;
-    color: var(--gold-light); margin-bottom: 4px;
-  }
-  .env-letter-sub {
     font-family: 'Cinzel', serif;
-    font-size: 8px; letter-spacing: 4px;
-    color: rgba(200,168,130,0.5);
+    font-size: clamp(8px, 1.2vw, 10px); letter-spacing: 3px;
+    color: rgba(200,168,130,0.4);
+    animation: pulse 2.5s ease-in-out infinite;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  @keyframes pulse {
+    0%,100%{ opacity:0.4; } 50%{ opacity:0.8; }
   }
 
-  /* Estado: abierto */
+  /* Estado abierto */
   .env-wrap.opened .env-flap {
-    transform: rotateX(180deg);
+    transform: rotateX(-175deg);
   }
   .env-wrap.opened .env-seal {
     transform: translate(-50%, -50%) scale(0);
     opacity: 0;
   }
-  .env-wrap.opened .env-letter {
-    transform: translateY(-55%) scale(1);
-    opacity: 1;
+  .env-wrap.opened .env-hint {
+    opacity: 0;
   }
-
-  /* Botón "Ver invitación" */
-  .env-cta {
-    display: block;
-    margin: 28px auto 0;
-    padding: 16px 36px;
-    width: 100%;
-    background: linear-gradient(135deg, #8B6B45, #C8A882);
-    border: none; border-radius: 10px;
-    color: #0E0818;
-    font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 4px;
-    cursor: pointer; text-transform: uppercase;
-    opacity: 0; pointer-events: none;
-    transform: translateY(10px);
-    transition: opacity 0.5s ease 0.8s, transform 0.5s ease 0.8s;
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
-  }
-  .env-wrap.opened .env-cta {
-    opacity: 1; pointer-events: auto;
-    transform: translateY(0);
-  }
-
-  /* Texto de instrucción */
-  .env-hint {
-    text-align: center; margin-top: 22px;
-    font-family: 'Cinzel', serif;
-    font-size: 9px; letter-spacing: 3px;
-    color: rgba(200,168,130,0.35);
-    animation: pulse 2.5s ease-in-out infinite;
-  }
-  @keyframes pulse {
-    0%,100%{ opacity:0.35; } 50%{ opacity:0.7; }
-  }
-  .env-wrap.opened .env-hint { opacity: 0; pointer-events: none; }
 </style>
 </head>
 <body>
@@ -840,7 +866,7 @@
 <div id="accessScreen">
 
   <!-- Paso 1: código -->
-  <div id="codeStep" style="text-align:center;padding:0 24px">
+  <div id="codeStep">
     <div style="font-family:'Cormorant Garamond',serif;font-size:48px;color:var(--gold);opacity:0.2;line-height:1;margin-bottom:16px;animation:fadeUp 1s ease both">✦</div>
     <p style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:5px;color:var(--gold);margin-bottom:16px;animation:fadeUp 1s ease 0.1s both">INVITACIÓN EXCLUSIVA</p>
     <p style="font-family:'Cormorant Garamond',serif;font-size:clamp(26px,6vw,40px);font-weight:300;font-style:italic;color:var(--cream);margin-bottom:32px;animation:fadeUp 1s ease 0.2s both;line-height:1.2">Ingresa tu código<br>para acceder</p>
@@ -857,39 +883,31 @@
   </div>
 
   <!-- Paso 2: sobre animado (se muestra tras validar el código) -->
-  <div id="envelopeStep" style="display:none;text-align:center;padding:24px 24px 48px;width:100%;max-width:400px;margin:0 auto">
+  <div id="envelopeStep">
     <div class="env-wrap" id="envWrap" onclick="openEnvelope()">
 
       <div class="env-body">
         <!-- Tapa SVG -->
         <div class="env-flap">
-          <svg viewBox="0 0 340 106" xmlns="http://www.w3.org/2000/svg">
+          <svg viewBox="0 0 520 162" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <linearGradient id="flapGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#2a1a4a"/>
+                <stop offset="0%" stop-color="#2e1c52"/>
                 <stop offset="100%" stop-color="#1c1230"/>
               </linearGradient>
             </defs>
-            <path d="M0,0 L170,100 L340,0 Z" fill="url(#flapGrad)" stroke="rgba(200,168,130,0.2)" stroke-width="0.5"/>
-            <!-- Línea dorada en el doblez -->
-            <line x1="0" y1="0" x2="340" y2="0" stroke="rgba(200,168,130,0.15)" stroke-width="0.5"/>
+            <path d="M0,0 L260,148 L520,0 Z" fill="url(#flapGrad)" stroke="rgba(200,168,130,0.22)" stroke-width="0.5"/>
+            <line x1="0" y1="0" x2="520" y2="0" stroke="rgba(200,168,130,0.18)" stroke-width="0.5"/>
           </svg>
         </div>
 
         <!-- Sello de cera -->
         <div class="env-seal">✦</div>
-
-        <!-- Carta que emerge -->
-        <div class="env-letter">
-          <p class="env-letter-name" id="env-xv-name" style="font-size:clamp(13px,3.5vw,17px);line-height:1.6;font-style:italic">Gracias por acompañarnos<br>en este día tan especial</p>
-          <p class="env-letter-sub" style="margin-top:10px">X V · A Ñ O S</p>
-        </div>
       </div>
 
-      <!-- CTA y hint fuera del body pero dentro del wrap -->
-      <button class="env-cta" onclick="revealMain(event)">VER INVITACIÓN</button>
+      <!-- Hint dentro del wrap para que escale junto al sobre -->
+      <p class="env-hint" id="envHint">Toca para abrir</p>
     </div>
-    <p class="env-hint" id="envHint">Toca el sobre para abrirlo</p>
   </div>
 
 </div>
@@ -938,22 +956,6 @@
 
   <div class="divider"><div class="divider-gem"></div></div>
 
-  <!-- ── 3. VIDEO ESPECIAL (oculto hasta la fecha configurada) ── -->
-  <section id="video-section" style="display:none">
-    <div class="video-section">
-      <span class="section-label">Un mensaje especial</span>
-      <h2 style="font-family:'Cormorant Garamond',serif;font-size:clamp(24px,5vw,40px);font-weight:300;font-style:italic;margin-bottom:8px" id="video-title">Antes de la fiesta…</h2>
-      <p style="color:var(--text3);font-size:14px;line-height:1.8;margin-bottom:0" id="video-subtitle"></p>
-      <div class="video-wrapper">
-        <video controls>
-          <source src="multimedia/video1.mp4" type="video/mp4">
-          <source src="multimedia/video1.mov" type="video/quicktime">
-          <source src="multimedia/video1.webm" type="video/webm">
-        </video>
-      </div>
-    </div>
-  </section>
-
   <!-- ── 4. DATOS DEL EVENTO ── -->
   <section>
     <div class="divider"><div class="divider-gem"></div></div>
@@ -980,14 +982,15 @@
       </div>
     </div>
 
-    <!-- Tarjeta de mapa: abre la ubicación real en Google Maps al dar clic (siempre funciona, sin API key) -->
-    <div id="map-embed-wrap" style="display:none">
-      <a id="map-visual-link" href="#" target="_blank" class="map-visual-card">
-        <div class="map-visual-pin">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/></svg>
-        </div>
-        <span class="map-visual-text">Abrir ubicación en Google Maps</span>
-        <span class="map-visual-cta">Ver mapa y ruta →</span>
+    <!-- Mapa embed de Google Maps (modo oscuro) -->
+    <div style="margin-top:2px;border-radius:0 0 16px 16px;overflow:hidden;border:1px solid rgba(200,168,130,0.1);border-top:none">
+      <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3757.700356187106!2d-99.1145324!3d19.6401042!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d1f4118845112d%3A0x1ebc202517db9a6e!2sSalones%20Rancho%20El%20Rosario%20%7C%20Salones%20de%20Fiestas%20en%20Coacalco!5e0!3m2!1ses-419!2smx!4v1787586684677!5m2!1ses-419!2smx"
+        width="100%" height="280" style="border:0;display:block;filter:invert(0.92) hue-rotate(180deg) saturate(0.6) brightness(0.8);"
+        allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      <a href="https://www.google.com/maps/place/Salones+Rancho+El+Rosario/@19.6401042,-99.1145324,17z" target="_blank"
+        style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;background:rgba(14,8,24,0.95);text-decoration:none;border-top:1px solid rgba(200,168,130,0.1)">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" style="width:14px;height:14px;color:#C8A882;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/></svg>
+        <span style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;color:#C8A882;text-transform:uppercase">Abrir en Google Maps →</span>
       </a>
     </div>
   </section>
@@ -1057,7 +1060,29 @@
     </div>
   </section>
 
-  <!-- ── 5B. CAJA DE SOBRES (EN VEZ DE REGALOS) ── -->
+
+  <!-- ── 5B. MENÚ DE LA COMIDA ── -->
+  <section>
+    <div class="divider"><div class="divider-gem"></div></div>
+    <span class="section-label" style="margin-top:40px;display:block;text-align:center">El banquete</span>
+    <h2 style="font-family:'Cormorant Garamond',serif;font-size:clamp(26px,5vw,38px);font-weight:300;font-style:italic;text-align:center;margin-bottom:40px;color:var(--cream)">Menú</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;background:rgba(200,168,130,0.1);border-radius:16px;overflow:hidden">
+      <div style="background:rgba(14,8,24,0.95);padding:32px 24px;text-align:center">
+        <div style="font-size:28px;margin-bottom:14px;opacity:0.7">🍽️</div>
+        <span style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;display:block;margin-bottom:10px">Adultos</span>
+        <p style="font-family:'Cormorant Garamond',serif;font-size:clamp(18px,4vw,24px);font-weight:300;color:var(--cream);line-height:1.4">Chiles en Nogada</p>
+        <p style="font-size:13px;color:var(--text3);margin-top:6px">con sopa fría</p>
+      </div>
+      <div style="background:rgba(14,8,24,0.95);padding:32px 24px;text-align:center">
+        <div style="font-size:28px;margin-bottom:14px;opacity:0.7">🍗</div>
+        <span style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;display:block;margin-bottom:10px">Niños</span>
+        <p style="font-family:'Cormorant Garamond',serif;font-size:clamp(18px,4vw,24px);font-weight:300;color:var(--cream);line-height:1.4">Nuggets</p>
+        <p style="font-size:13px;color:var(--text3);margin-top:6px">con sopa fría</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 5C. CAJA DE SOBRES (EN VEZ DE REGALOS) ── -->
   <section>
     <div class="divider"><div class="divider-gem"></div></div>
     <span class="section-label" style="margin-top:40px;display:block;text-align:center">Un detalle</span>
@@ -1121,7 +1146,7 @@
         <p style="font-size:10px;letter-spacing:2px;color:rgba(200,168,130,0.3);margin-top:12px;text-transform:uppercase">Foto</p>
       </div>
       <div class="profile-text">
-        <h2 id="xv-nombre-display">Catherine Virenka<br>Mendoza Hernández</h2>
+        <h2 id="xv-nombre-display">Virenka<br>Mendoza Hernández</h2>
         <p id="xv-bio-display">Con enorme alegría te invitamos a celebrar este momento tan especial. Quince años de historias, sueños y risas que queremos compartir contigo en una noche llena de magia.</p>
         <p style="margin-top:20px" id="padres-msg-display">Tu presencia es el mejor regalo que podríamos recibir. Con todo nuestro cariño,<br><em style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:17px" id="padres-nombres-display">Miriam Del Rocio Hernandez &amp; Angel Abdiel Mendoza</em></p>
       </div>
@@ -1188,7 +1213,7 @@ const _dates = JSON.parse(localStorage.getItem('admin_dates') || '{}');
 const EVENT_CODE    = 'VIRE26';
 const ACCESS_KEY    = 'xv_access_' + (EVENT_CODE || 'DEFAULT');
 
-const EVENT_DATE_STR  = _dates['evento']          || '2026-10-24T17:30:00';
+const EVENT_DATE_STR  = '2026-10-24T17:30:00';
 const VIDEO_DATE_STR  = _dates['video']           || null;
 
 const MESES_ES  = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
@@ -1228,21 +1253,22 @@ function checkCode() {
 }
 
 function showEnvelope() {
-  // Transición: ocultar step código, mostrar sobre
+  // Paso 1 → fade out
   const codeStep = document.getElementById('codeStep');
-  codeStep.style.transition = 'opacity 0.4s ease';
   codeStep.style.opacity = '0';
+  codeStep.style.pointerEvents = 'none';
+
   setTimeout(() => {
     codeStep.style.display = 'none';
+    // Paso 2 → mostrar sobre a pantalla completa
     const envStep = document.getElementById('envelopeStep');
-    envStep.style.display = 'block';
-    envStep.style.opacity = '0';
-    envStep.style.transition = 'opacity 0.5s ease';
-    requestAnimationFrame(() => requestAnimationFrame(() => envStep.style.opacity = '1'));
-    // Poner el nombre en el sobre
-    const el = document.getElementById('env-xv-name');
-    if (el) el.textContent = 'Vire';
-  }, 400);
+    envStep.classList.add('visible');          // display:flex
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() =>
+        envStep.classList.add('shown')         // opacity:1
+      )
+    );
+  }, 420);
 }
 
 let envelopeOpened = false;
@@ -1250,9 +1276,26 @@ function openEnvelope(e) {
   if (e) e.preventDefault();
   if (envelopeOpened) return;
   envelopeOpened = true;
-  document.getElementById('envWrap').classList.add('opened');
+
+  const wrap = document.getElementById('envWrap');
   const hint = document.getElementById('envHint');
-  if (hint) hint.style.display = 'none';
+  if (hint) hint.style.opacity = '0';
+
+  // Calcular el factor de escala exacto para que el sobre CUBRA toda la pantalla.
+  // Se toma el bounding rect del sobre en su tamaño actual y se calcula cuántas
+  // veces hay que multiplicarlo para superar el lado más largo de la ventana.
+  const rect = wrap.getBoundingClientRect();
+  const scaleX = (window.innerWidth  + 40) / rect.width;
+  const scaleY = (window.innerHeight + 40) / rect.height;
+  const scale  = Math.max(scaleX, scaleY);
+  // Exponer como CSS custom property para que la transición la lea
+  wrap.style.setProperty('--env-scale', scale.toFixed(3));
+
+  // Disparar la animación (tapa + escala + fade)
+  wrap.classList.add('opened');
+
+  // Pasar a la invitación cuando la animación termina
+  setTimeout(() => revealMain(null), 1450);
 }
 
 function revealMain(e) {
@@ -1293,7 +1336,7 @@ window.addEventListener('DOMContentLoaded', () => {
 // ══════════════════════════════════════
 function initPage() {
   // Nombre y fecha del hero (se usa el apodo si está configurado, si no el nombre por defecto)
-  const firstName = _cfg.xvApodo || 'Virenka';
+  const firstName = 'Virenka';
   document.getElementById('hero-name').innerHTML = `<em>${firstName}</em>`;
 
   const evDate = _parseDateLocal(EVENT_DATE_STR);
@@ -1313,7 +1356,7 @@ function initPage() {
   // Lugar
   const lugar = _cfg.eventoLugar || '';
   const dir   = _cfg.eventoDireccion || '';
-  const maps  = _cfg.eventoMaps || '';
+  const maps  = _cfg.eventoMaps || 'https://maps.app.goo.gl/pu2TNSVH1GgxhqgJ8';
   if (lugar) document.getElementById('inv-lugar-nombre').textContent = lugar;
   if (dir)   document.getElementById('inv-lugar-dir').textContent = dir;
 
@@ -1326,11 +1369,7 @@ function initPage() {
     mapsLink.style.display = 'inline-flex';
 
     // Tarjeta visual de mapa — abre Google Maps directamente (confiable, sin depender de iframes sin API key)
-    const mapVisualLink = document.getElementById('map-visual-link');
-    if (mapVisualLink) {
-      mapVisualLink.href = mapsLinkHref;
-      document.getElementById('map-embed-wrap').style.display = 'block';
-    }
+
   }
   // Toda la tarjeta de lugar es interactiva: clic abre Google Maps
   if (mapsLinkHref) {
@@ -1382,7 +1421,6 @@ function initPage() {
   if (VIDEO_DATE_STR) {
     const vDate = _parseDateLocal(VIDEO_DATE_STR);
     if (vDate && new Date() >= vDate) {
-      document.getElementById('video-section').style.display = 'block';
     }
   }
 
