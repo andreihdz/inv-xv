@@ -707,8 +707,8 @@
     font-size: clamp(16px, 3.5vw, 22px); font-style: italic; font-weight: 300;
     color: var(--cream); line-height: 1.7; margin-bottom: 20px;
   }
-  .ded-quote::before { content: 'C'; color: var(--gold); font-size: 1.4em; line-height: 0; vertical-align: -0.3em; margin-right: 2px; }
-  .ded-quote::after  { content: 'D'; color: var(--gold); font-size: 1.4em; line-height: 0; vertical-align: -0.3em; margin-left: 2px; }
+  .ded-quote::before { content: ''; }
+  .ded-quote::after  { content: ''; }
   .ded-author {
     font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 3px;
     color: var(--gold); text-transform: uppercase; margin-bottom: 6px;
@@ -1776,6 +1776,8 @@ function toggleMusic() {
     document.getElementById('iconPlay').style.display  = '';
     document.getElementById('iconPause').style.display = 'none';
     document.getElementById('musicBars').classList.add('paused');
+    // Ocultar barra al pausar
+    infoEl.classList.remove('visible');
   } else {
     audio.play().catch(() => {});
     musicPlaying = true;
@@ -1783,10 +1785,9 @@ function toggleMusic() {
     document.getElementById('iconPlay').style.display  = 'none';
     document.getElementById('iconPause').style.display = '';
     document.getElementById('musicBars').classList.remove('paused');
+    // Mostrar barra al reproducir
+    infoEl.classList.add('visible');
   }
-  // El panel con el nombre de la canción y el volumen se muestra/oculta
-  // cada vez que se da clic en el botón, para no tapar contenido por defecto
-  infoEl.classList.toggle('visible');
 }
 
 function toggleMute() {
@@ -1845,7 +1846,9 @@ function scrollToTop() {
     // Tooltip cotizar: aparece al llegar al final, se oculta solo en 5s, vuelve si se baja de nuevo
     const accessVisible = document.getElementById('accessScreen') &&
                           document.getElementById('accessScreen').style.display !== 'none';
-    if (cotizarTooltip && !accessVisible) {
+    const dedModalOpen = document.getElementById('ded-modal') &&
+                         document.getElementById('ded-modal').classList.contains('open');
+    if (cotizarTooltip && !accessVisible && !dedModalOpen) {
       if (nearBottom && !cotizarTooltip.classList.contains('show')) {
         // Mostrar y arrancar timer de 5s cada vez que llega al fondo
         cotizarTooltip.classList.add('show');
