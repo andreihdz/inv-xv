@@ -1254,7 +1254,7 @@
 // ══════════════════════════════════════
 const _cfg   = JSON.parse(localStorage.getItem('inv_config')  || '{}');
 const _dates = JSON.parse(localStorage.getItem('admin_dates') || '{}');
-const EVENT_CODE    = 'VIRE26';
+const EVENT_CODE    = null; // Validación vía Supabase
 const ACCESS_KEY    = 'xv_access_' + (EVENT_CODE || 'DEFAULT');
 
 const EVENT_DATE_STR  = '2026-10-24T17:30:00';
@@ -1283,16 +1283,40 @@ function _fmt12h(d) {
 // ══════════════════════════════════════
 // ACCESO CON CÓDIGO
 // ══════════════════════════════════════
-function checkCode() {
+async function checkCode() {
   const val = document.getElementById('accessCode').value.trim().toUpperCase();
-  if (!EVENT_CODE || val === EVENT_CODE) {
-    showEnvelope();
-  } else {
+  if (!val) return;
+
+  const btn = document.querySelector('[onclick="checkCode()"]');
+  if (btn) { btn.style.opacity = '0.6'; btn.textContent = '...'; }
+
+  try {
+    // Validar código contra Supabase
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/codigos?codigo=eq.${encodeURIComponent(val)}&activo=eq.true&select=codigo,evento`,
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+    );
+    const rows = await res.json();
+
+    if (rows && rows.length > 0) {
+      // Código válido — guardar para registrar visita
+      window._codigoUsado = val;
+      showEnvelope();
+    } else {
+      // Código incorrecto o inactivo
+      const err = document.getElementById('accessError');
+      err.style.opacity = '1';
+      const inp = document.getElementById('accessCode');
+      inp.style.borderColor = 'rgba(240,149,149,0.5)';
+      setTimeout(() => inp.style.borderColor = '', 1200);
+    }
+  } catch(e) {
+    // Si Supabase falla, mostrar error genérico
     const err = document.getElementById('accessError');
+    err.textContent = 'Error de conexión. Intenta de nuevo.';
     err.style.opacity = '1';
-    const inp = document.getElementById('accessCode');
-    inp.style.borderColor = 'rgba(240,149,149,0.5)';
-    setTimeout(() => inp.style.borderColor = '', 1200);
+  } finally {
+    if (btn) { btn.style.opacity = '1'; btn.textContent = 'ACCEDER'; }
   }
 }
 
@@ -1349,6 +1373,8 @@ function revealMain(e) {
   setTimeout(() => screen.style.display = 'none', 850);
   document.getElementById('mainPage').style.display = 'block';
   document.getElementById('musicPlayer').style.display = 'flex';
+  // Registrar visita en Supabase
+  registrarVisita();
   // Arrancar música al entrar a la invitación (info de la canción permanece oculta
   // hasta que el usuario dé clic en el botón de música)
   const audio = _audio();
@@ -1364,15 +1390,9 @@ function revealMain(e) {
   setTimeout(() => { if (window._updateScrollHints) window._updateScrollHints(); }, 100);
 }
 
-// ── Si no hay código configurado, entrar directo ──
+// ── Siempre mostrar pantalla de código — validación vía Supabase ──
 window.addEventListener('DOMContentLoaded', () => {
-  if (!EVENT_CODE) {
-    document.getElementById('accessScreen').style.display = 'none';
-    document.getElementById('mainPage').style.display = 'block';
-    document.getElementById('musicPlayer').style.display = 'flex';
-    initPage();
-    setTimeout(() => { if (window._updateScrollHints) window._updateScrollHints(); }, 100);
-  }
+  // No hacer nada: la pantalla de acceso siempre se muestra primero
 });
 
 // ══════════════════════════════════════
@@ -1801,6 +1821,71 @@ function closeLightbox() {
   document.body.style.overflow = '';
 }
 document.addEventListener('keydown', e => { if(e.key==='Escape') closeLightbox(); });
+
+
+// ══════════════════════════════════════
+// SUPABASE — VALIDACIÓN + REGISTRO DE VISITAS
+// ══════════════════════════════════════
+const SUPABASE_URL = 'https://bcdeleevoqesoftphpfk.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJjZGVsZWV2b3Flc29mdHBocGZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc2NjcwODgsImV4cCI6MjEwMzI0MzA4OH0.7_6l7RZMNxvj-st9E4yfygW3bfkp0lcQHgIsAG5yCxY';
+
+function _getDispositivo() {
+  const ua = navigator.userAgent;
+  if (/iPhone|iPad|iPod/i.test(ua)) return /iPad/i.test(ua) ? 'iPad' : 'iPhone';
+  if (/Android/i.test(ua)) return /Tablet|Tab/i.test(ua) ? 'Android Tablet' : 'Android';
+  if (/Mac/i.test(ua)) return 'Mac';
+  if (/Windows/i.test(ua)) return 'Windows';
+  return 'Otro';
+}
+
+function _getNavegador() {
+  const ua = navigator.userAgent;
+  if (/Edg\//i.test(ua))    return 'Edge';
+  if (/OPR\//i.test(ua))    return 'Opera';
+  if (/Chrome/i.test(ua))   return 'Chrome';
+  if (/Safari/i.test(ua))   return 'Safari';
+  if (/Firefox/i.test(ua))  return 'Firefox';
+  return 'Otro';
+}
+
+async function registrarVisita() {
+  try {
+    const codigo = window._codigoUsado || 'VIRE26';
+
+    // 1. Obtener país/ciudad via IP (servicio gratuito, sin API key)
+    let pais = null, ciudad = null;
+    try {
+      const geo = await fetch('https://ipapi.co/json/');
+      const geoData = await geo.json();
+      pais   = geoData.country_name || null;
+      ciudad = geoData.city || null;
+    } catch(_) {}
+
+    // 2. Insertar nueva fila de visita con todos los detalles
+    await fetch(`${SUPABASE_URL}/rest/v1/visitas`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        evento:      codigo,
+        total:       1,
+        dispositivo: _getDispositivo(),
+        navegador:   _getNavegador(),
+        pais:        pais,
+        ciudad:      ciudad,
+        fecha:       new Date().toISOString()
+      })
+    });
+
+    console.log('Visita registrada:', codigo, _getDispositivo(), pais);
+  } catch(e) {
+    console.warn('Supabase visita:', e.message);
+  }
+}
 
 </script>
 </body>
