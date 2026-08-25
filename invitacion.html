@@ -685,6 +685,162 @@
   }
   #lightbox-close:hover { color:var(--gold); }
 
+  /* ── DEDICATORIAS ── */
+  .dedicatorias-carousel {
+    position: relative; margin-top: 32px; min-height: 180px;
+  }
+  .ded-track-wrap { overflow: hidden; border-radius: 16px; }
+  .ded-track { display: flex; transition: transform 0.5s cubic-bezier(0.4,0,0.2,1); }
+  .ded-card {
+    flex: 0 0 100%;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(200,168,130,0.15);
+    border-radius: 16px; padding: 36px 32px;
+    text-align: center; position: relative; overflow: hidden;
+  }
+  .ded-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:1px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+  }
+  .ded-quote {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(16px, 3.5vw, 22px); font-style: italic; font-weight: 300;
+    color: var(--cream); line-height: 1.7; margin-bottom: 20px;
+  }
+  .ded-quote::before { content: 'C'; color: var(--gold); font-size: 1.4em; line-height: 0; vertical-align: -0.3em; margin-right: 2px; }
+  .ded-quote::after  { content: 'D'; color: var(--gold); font-size: 1.4em; line-height: 0; vertical-align: -0.3em; margin-left: 2px; }
+  .ded-author {
+    font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 3px;
+    color: var(--gold); text-transform: uppercase; margin-bottom: 6px;
+  }
+  .ded-social {
+    font-size: 12px; color: var(--text3); letter-spacing: 0.5px;
+  }
+  .ded-nav {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(14,8,24,0.75); backdrop-filter: blur(8px);
+    border: 1px solid rgba(200,168,130,0.3);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; z-index: 5; transition: border-color 0.2s;
+  }
+  .ded-nav:hover { border-color: var(--gold); }
+  .ded-nav svg { width: 14px; height: 14px; color: var(--gold); }
+  .ded-nav.prev { left: 8px; }
+  .ded-nav.next { right: 8px; }
+  .ded-nav.hidden { display: none; }
+  .ded-dots { display: flex; justify-content: center; gap: 7px; margin-top: 16px; }
+  .ded-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: rgba(200,168,130,0.25); cursor: pointer;
+    transition: background 0.2s, transform 0.2s; border: none; padding: 0;
+  }
+  .ded-dot.active { background: var(--gold); transform: scale(1.3); }
+  .ded-empty {
+    text-align: center; padding: 48px 24px;
+    font-family: 'Cormorant Garamond', serif; font-style: italic;
+    font-size: 18px; color: var(--text3);
+  }
+
+  /* Botón agregar dedicatoria */
+  .ded-add-btn {
+    display: flex; align-items: center; gap: 10px;
+    margin: 32px auto 0; padding: 14px 32px;
+    background: transparent;
+    border: 1px solid rgba(200,168,130,0.3); border-radius: 100px;
+    color: var(--gold); cursor: pointer;
+    font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 3px;
+    text-transform: uppercase; transition: border-color 0.2s, background 0.2s;
+  }
+  .ded-add-btn:hover { border-color: var(--gold); background: rgba(200,168,130,0.05); }
+  .ded-add-btn svg { width: 14px; height: 14px; }
+
+  /* Modal overlay */
+  #ded-modal {
+    position: fixed; inset: 0; z-index: 700;
+    background: rgba(0,0,0,0.75); backdrop-filter: blur(10px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  #ded-modal.open { opacity: 1; pointer-events: auto; }
+
+  /* Panel centrado */
+  .ded-panel {
+    background: linear-gradient(160deg, #1e1338 0%, #110b22 100%);
+    border: 1px solid rgba(200,168,130,0.2);
+    border-radius: 24px;
+    padding: 32px 28px 36px; width: 100%; max-width: 460px;
+    position: relative;
+    transform: translateY(20px) scale(0.97);
+    transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+  }
+  #ded-modal.open .ded-panel { transform: translateY(0) scale(1); }
+
+  /* Selector red social */
+  .ded-red-row {
+    display: grid; grid-template-columns: 140px 1fr; gap: 10px; margin-bottom: 14px;
+  }
+  .ded-select {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(200,168,130,0.18); border-radius: 10px;
+    padding: 13px 12px; color: var(--cream);
+    font-family: 'Jost', sans-serif; font-size: 13px; font-weight: 300;
+    outline: none; cursor: pointer; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23C8A882' stroke-width='1.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center; background-size: 14px;
+    transition: border-color 0.2s;
+  }
+  .ded-select:focus { border-color: rgba(200,168,130,0.5); }
+  .ded-select option { background: #1a0f2e; color: var(--cream); }
+
+  /* Handle visual */
+  .ded-panel-handle {
+    width: 40px; height: 4px; border-radius: 2px;
+    background: rgba(200,168,130,0.25);
+    margin: 0 auto 24px;
+  }
+  .ded-panel-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(20px,4vw,26px); font-style: italic; font-weight: 300;
+    color: var(--cream); text-align: center; margin-bottom: 24px;
+  }
+  .ded-panel-close {
+    position: absolute; top: 20px; right: 20px;
+    background: none; border: none; color: rgba(255,255,255,0.3);
+    font-size: 22px; cursor: pointer; line-height: 1;
+    transition: color 0.2s;
+  }
+  .ded-panel-close:hover { color: var(--gold); }
+  .ded-input, .ded-textarea {
+    width: 100%; background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(200,168,130,0.18); border-radius: 10px;
+    padding: 13px 16px; color: var(--cream);
+    font-family: 'Jost', sans-serif; font-size: 14px; font-weight: 300;
+    outline: none; transition: border-color 0.2s; margin-bottom: 14px;
+    display: block;
+  }
+  .ded-textarea { resize: none; height: 90px; line-height: 1.6; }
+  .ded-input:focus, .ded-textarea:focus { border-color: rgba(200,168,130,0.5); }
+  .ded-input::placeholder, .ded-textarea::placeholder { opacity: 0.35; }
+  .ded-btn {
+    width: 100%; padding: 15px;
+    background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+    border: none; border-radius: 10px; color: var(--dark);
+    font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 4px;
+    cursor: pointer; text-transform: uppercase;
+    transition: opacity 0.2s, transform 0.1s; margin-top: 4px;
+  }
+  .ded-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+  .ded-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .ded-msg {
+    text-align: center; font-size: 13px; margin-top: 14px;
+    min-height: 20px; transition: opacity 0.3s;
+  }
+  .ded-msg.ok  { color: #8fc98f; }
+  .ded-msg.err { color: #f09595; }
+
   /* ── TOOLTIP COTIZAR (aparece al llegar al footer) ── */
   .cotizar-tooltip {
     position: absolute;
@@ -1192,6 +1348,61 @@
     </div>
   </section>
 
+  <!-- ── 8. DEDICATORIAS ── -->
+  <section>
+    <div class="divider"><div class="divider-gem"></div></div>
+    <span class="section-label" style="margin-top:40px;display:block;text-align:center">Mensajes</span>
+    <h2 style="font-family:'Cormorant Garamond',serif;font-size:clamp(26px,5vw,38px);font-weight:300;font-style:italic;text-align:center;margin-bottom:8px;color:var(--cream)">Dedicatorias</h2>
+    <p style="text-align:center;font-size:13px;color:var(--text3);margin-bottom:32px">Palabras de quienes te quieren</p>
+
+    <!-- Carrusel -->
+    <div class="dedicatorias-carousel" id="ded-carousel">
+      <div class="ded-track-wrap">
+        <div class="ded-track" id="ded-track"></div>
+      </div>
+      <button class="ded-nav prev hidden" id="ded-prev" onclick="dedPrev()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>
+      </button>
+      <button class="ded-nav next hidden" id="ded-next" onclick="dedNext()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
+      </button>
+    </div>
+    <div class="ded-dots" id="ded-dots"></div>
+
+    <!-- Botón abrir modal -->
+    <button class="ded-add-btn" onclick="abrirDedModal()">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+      Dejar dedicatoria
+    </button>
+  </section>
+
+  <!-- Modal dedicatoria -->
+  <div id="ded-modal" onclick="cerrarDedModal(event)">
+    <div class="ded-panel">
+      <div class="ded-panel-handle"></div>
+      <button class="ded-panel-close" onclick="cerrarDedModal()">✕</button>
+      <p class="ded-panel-title">Déjale un mensaje a Virenka</p>
+      <input  class="ded-input"    id="ded-nombre"  type="text" placeholder="Tu nombre" maxlength="60">
+      <textarea class="ded-textarea" id="ded-mensaje" placeholder="Escribe tu dedicatoria..." maxlength="300"></textarea>
+      <div class="ded-red-row">
+        <select class="ded-select" id="ded-red-tipo">
+          <option value="">Sin red social</option>
+          <option value="Instagram">Instagram</option>
+          <option value="Facebook">Facebook</option>
+          <option value="TikTok">TikTok</option>
+          <option value="WhatsApp">WhatsApp</option>
+          <option value="X">X (Twitter)</option>
+          <option value="YouTube">YouTube</option>
+        </select>
+        <input class="ded-input" id="ded-red-usuario" type="text"
+          placeholder="@usuario" maxlength="60"
+          style="margin-bottom:0">
+      </div>
+      <button class="ded-btn" id="ded-submit" onclick="enviarDedicatoria()">ENVIAR DEDICATORIA</button>
+      <p class="ded-msg" id="ded-msg"></p>
+    </div>
+  </div>
+
   <footer>
     <div class="divider" style="margin-bottom:32px"><div class="divider-gem"></div></div>
     <span id="footer-txt">XV Años · Con todo nuestro amor</span>
@@ -1499,6 +1710,9 @@ function initPage() {
 
   // Foto principal de la quinceañera — detecta automáticamente multimedia/f_principal.jpg
   initProfilePhoto();
+
+  // Dedicatorias aprobadas
+  initDedicatorias();
 }
 
 // ══════════════════════════════════════
@@ -1821,6 +2035,161 @@ function closeLightbox() {
   document.body.style.overflow = '';
 }
 document.addEventListener('keydown', e => { if(e.key==='Escape') closeLightbox(); });
+
+// ══════════════════════════════════════
+// DEDICATORIAS
+// ══════════════════════════════════════
+let dedItems = [], dedIndex = 0, dedAutoTimer = null;
+
+async function initDedicatorias() {
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/dedicatorias?evento=eq.VIRE26&aprobada=eq.true&order=fecha.asc&select=nombre,mensaje,red_social`,
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+    );
+    dedItems = await res.json();
+  } catch(e) { dedItems = []; }
+  renderDedicatorias();
+}
+
+function renderDedicatorias() {
+  const track = document.getElementById('ded-track');
+  const dots  = document.getElementById('ded-dots');
+  const prev  = document.getElementById('ded-prev');
+  const next  = document.getElementById('ded-next');
+  if (!track) return;
+
+  if (!dedItems.length) {
+    track.innerHTML = '<div class="ded-card"><p class="ded-empty">Sé el primero en dejar una dedicatoria ✦</p></div>';
+    dots.innerHTML = '';
+    prev.classList.add('hidden');
+    next.classList.add('hidden');
+    return;
+  }
+
+  track.innerHTML = dedItems.map(d => `
+    <div class="ded-card">
+      <p class="ded-quote">${d.mensaje}</p>
+      <p class="ded-author">${d.nombre}</p>
+      ${d.red_social ? `<p class="ded-social">${d.red_social}</p>` : ''}
+    </div>
+  `).join('');
+
+  const multi = dedItems.length > 1;
+  dots.style.display = multi ? 'flex' : 'none';
+  prev.classList.toggle('hidden', !multi);
+  next.classList.toggle('hidden', !multi);
+
+  dots.innerHTML = dedItems.map((_, i) =>
+    `<button class="ded-dot${i===0?' active':''}" onclick="dedGoTo(${i})"></button>`
+  ).join('');
+
+  dedIndex = 0;
+  updateDedPosition();
+
+  // Auto-avanza cada 5s
+  clearInterval(dedAutoTimer);
+  if (multi) {
+    dedAutoTimer = setInterval(() => {
+      dedIndex = (dedIndex + 1) % dedItems.length;
+      updateDedPosition();
+    }, 5000);
+  }
+
+  // Swipe táctil
+  const wrap = document.querySelector('.ded-track-wrap');
+  let tx = 0;
+  wrap.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
+  wrap.addEventListener('touchend',   e => {
+    const diff = e.changedTouches[0].clientX - tx;
+    if (diff > 40) dedPrev(); else if (diff < -40) dedNext();
+  }, { passive: true });
+}
+
+function updateDedPosition() {
+  const track = document.getElementById('ded-track');
+  if (track) track.style.transform = `translateX(-${dedIndex * 100}%)`;
+  document.querySelectorAll('.ded-dot').forEach((d, i) =>
+    d.classList.toggle('active', i === dedIndex));
+}
+function dedPrev() { dedIndex = (dedIndex - 1 + dedItems.length) % dedItems.length; updateDedPosition(); }
+function dedNext() { dedIndex = (dedIndex + 1) % dedItems.length; updateDedPosition(); }
+function dedGoTo(i) { dedIndex = i; updateDedPosition(); }
+
+function abrirDedModal() {
+  document.getElementById('ded-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function cerrarDedModal(e) {
+  if (e && e.target !== document.getElementById('ded-modal')) return;
+  document.getElementById('ded-modal').classList.remove('open');
+  document.body.style.overflow = '';
+  document.getElementById('ded-msg').textContent = '';
+  document.getElementById('ded-msg').className = 'ded-msg';
+}
+
+async function enviarDedicatoria() {
+  const nombre  = document.getElementById('ded-nombre').value.trim();
+  const mensaje = document.getElementById('ded-mensaje').value.trim();
+  const redTipo    = document.getElementById('ded-red-tipo').value.trim();
+  const redUsuario = document.getElementById('ded-red-usuario').value.trim();
+  const red        = redTipo && redUsuario ? `${redTipo}: ${redUsuario}` : (redTipo || redUsuario || null);
+  const msg     = document.getElementById('ded-msg');
+  const btn     = document.getElementById('ded-submit');
+
+  if (!nombre || !mensaje) {
+    msg.textContent = 'Por favor escribe tu nombre y mensaje.';
+    msg.className = 'ded-msg err';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'ENVIANDO...';
+  msg.textContent = '';
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/dedicatorias`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        evento:     'VIRE26',
+        nombre:     nombre,
+        mensaje:    mensaje,
+        red_social: red || null,
+        aprobada:   false
+      })
+    });
+
+    if (res.ok || res.status === 201) {
+      msg.textContent = '¡Gracias! Tu mensaje será visible pronto ✦';
+      msg.className = 'ded-msg ok';
+      document.getElementById('ded-nombre').value      = '';
+      document.getElementById('ded-mensaje').value     = '';
+      document.getElementById('ded-red-tipo').value    = '';
+      document.getElementById('ded-red-usuario').value = '';
+      btn.textContent = 'ENVIADO ✓';
+      btn.disabled = false;
+      setTimeout(() => {
+        document.getElementById('ded-modal').classList.remove('open');
+        document.body.style.overflow = '';
+        btn.textContent = 'ENVIAR DEDICATORIA';
+        msg.textContent = '';
+      }, 2000);
+    } else {
+      throw new Error('Error al guardar');
+    }
+  } catch(e) {
+    msg.textContent = 'Hubo un error. Intenta de nuevo.';
+    msg.className = 'ded-msg err';
+    btn.textContent = 'ENVIAR DEDICATORIA';
+    btn.disabled = false;
+  }
+}
 
 
 // ══════════════════════════════════════
