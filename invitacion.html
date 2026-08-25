@@ -2047,7 +2047,7 @@ let dedItems = [], dedIndex = 0, dedAutoTimer = null;
 async function initDedicatorias() {
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/dedicatorias?evento=eq.VIRE26&aprobada=eq.true&order=fecha.asc&select=nombre,mensaje,red_social`,
+      `${SUPABASE_URL}/rest/v1/dedicatorias?evento=eq.${window._codigoUsado||''}&aprobada=eq.true&order=fecha.asc&select=nombre,mensaje,red_social`,
       { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
     );
     dedItems = await res.json();
@@ -2160,7 +2160,7 @@ async function enviarDedicatoria() {
         'Prefer': 'return=minimal'
       },
       body: JSON.stringify({
-        evento:     'VIRE26',
+        evento:     window._codigoUsado || '',
         nombre:     nombre,
         mensaje:    mensaje,
         red_social: red || null,
@@ -2222,7 +2222,7 @@ function _getNavegador() {
 
 async function registrarVisita() {
   try {
-    const codigo = window._codigoUsado || 'VIRE26';
+    const codigo = window._codigoUsado || '';
 
     // 1. Obtener país/ciudad via IP (servicio gratuito, sin API key)
     let pais = null, ciudad = null;
